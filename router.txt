@@ -1,0 +1,109 @@
+!
+version 12.0
+no service pad
+service timestamps debug datetime
+service timestamps log datetime
+service password-encryption
+service sequence-numbers
+!
+hostname cisco
+!
+boot system flash c2600-io3-mz.120-7.T
+logging buffered 8192 debugging
+no logging console
+enable secret 5 $1$dDL8$GDwKRMyUQ5iWZxbq6EAKY.
+enable password 7 0519030222455D0A16
+!
+!
+!
+!
+!
+clock timezone MET 1
+clock summer-time DST recurring
+ip subnet-zero
+no ip source-route
+no ip domain-lookup
+ip domain-name ibm.nl
+ip name-server 123.456.321.3
+!
+ip inspect audit-trail
+ip inspect name inspin fragment maximum 256 timeout 1
+ip inspect name inspin ftp alert off audit-trail on timeout 3600
+ip inspect name inspin http alert off audit-trail on timeout 3600
+ip inspect name inspin tcp alert off audit-trail on timeout 3600
+ip inspect name inspout fragment maximum 256 timeout 1
+ip inspect name inspout smtp alert off audit-trail on timeout 3600
+ip audit notify log
+ip audit po max-events 100
+ip audit smtp spam 25
+ip audit name AUDIT.1 info action alarm
+ip audit name AUDIT.1 attack action alarm drop reset
+!
+!
+!
+interface Ethernet0/0
+ip address 123.456.321.15 255.255.255.224
+ip access-group 102 in
+ip access-group 103 out
+no ip directed-broadcast
+ip inspect inspin in
+ip inspect inspout out
+ip audit AUDIT.1 in
+no cdp enable
+!
+interface Serial0/0
+no ip address
+no ip directed-broadcast
+no ip mroute-cache
+shutdown
+no fair-queue
+!
+interface Ethernet0/1
+ip address 123.456.321.33 255.255.255.248
+no ip directed-broadcast
+no cdp enable
+!
+ip classless
+ip route 0.0.0.0 0.0.0.0 Ethernet0/0 123.456.321.1 permanent
+ip route 123.456.321.40 255.255.255.248 123.456.321.34 permanent
+no ip http server
+!
+logging 123.456.321.3
+access-list 102 deny   ip 123.456.321.0 0.0.0.248 any
+access-list 102 deny   ip host 255.255.255.255 any
+access-list 102 permit tcp any host 123.456.321.42 eq ftp
+access-list 102 permit tcp any host 123.456.321.42 eq www
+access-list 102 permit tcp any host 123.456.321.42 eq 443
+access-list 102 permit tcp any host 123.456.321.43 eq ftp
+access-list 102 permit tcp any host 123.456.321.43 eq www
+access-list 102 permit tcp any host 123.456.321.43 eq 443
+access-list 102 permit udp host 123.456.321.3 eq domain any
+access-list 102 permit icmp any any echo-reply
+access-list 102 permit icmp any any echo
+access-list 102 permit icmp any any packet-too-big
+access-list 102 permit icmp any any unreachable
+access-list 102 permit icmp any any source-quench
+access-list 102 deny   udp any any eq netbios-ns
+access-list 102 deny   udp any any eq netbios-dgm
+access-list 102 deny   ip any any log
+access-list 103 permit tcp any host 123.456.321.4 eq smtp
+access-list 103 permit udp any host 123.456.321.3 eq domain
+access-list 103 permit icmp any any echo-reply
+access-list 103 permit icmp any any echo
+access-list 103 permit icmp any any packet-too-big
+access-list 103 permit icmp any any unreachable
+access-list 103 permit icmp any any source-quench
+access-list 103 deny   ip any any log
+dialer-list 1 protocol ip permit
+dialer-list 1 protocol ipx permit
+!
+line con 0
+exec-timeout 0 0
+transport input none
+line aux 0
+line vty 0 4
+password 7 15000E010723382727
+login
+!
+no scheduler allocate
+end
